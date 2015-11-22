@@ -9,7 +9,16 @@ import java.util.List;
 
 public class State {
 
-	List<City> cities;
+	private List<City> cities;
+	private String name;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 	public List<City> getCities() {
 		return cities;
