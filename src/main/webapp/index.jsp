@@ -81,7 +81,7 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-12 text-center">
-					<h2 class="section-heading">Chose the state and the city to
+					<h2 class="section-heading">Choose the state and the city to
 						get started!</h2>
 					<h3 class="section-subheading text-muted">Good Luck!</h3>
 				</div>
@@ -116,7 +116,8 @@
 			</br>
 			<div class="row text-center">
 				<form>
-					<input class="page-scroll btn btn-xl" type="button" onclick="alert('Searching')" value="Go">
+					<input class="page-scroll btn btn-xl" type="button" id="go" value="Go">
+					
 				</form>
 			</div>
 		</div>
@@ -223,7 +224,7 @@
 					<div class="col-lg-8 col-lg-offset-2">
 						<div class="modal-body">
 							<!-- Project Details Go Here -->
-							<h2>Project Name</h2>
+							<h2 id="cityDetailsHeader"></h2>
 							<p class="item-intro text-muted">Lorem ipsum dolor sit amet
 								consectetur.</p>
 							<img class="img-responsive img-centered"
@@ -297,6 +298,7 @@
 	</script>
 	
 <c:url var="findStateCitiesURL" value="/cities" />
+<c:url var="getZipcodesURL" value="/getZipcodes" />
  
 <script type="text/javascript">
 $(document).ready(function() { 
@@ -317,6 +319,28 @@ $(document).ready(function() {
 				$('#cities').html(html);
 			});
 		});
+});
+$("#go").click(function(){
+	$.getJSON('${getZipcodesURL}', {
+		stateName : $('#states').val(),
+		cityName : $('#cities').val(),
+		ajax : 'true'
+	}, function(data) {
+		console.log(data);
+		console.log(data['stateName']);
+		console.log(data['cityName']);
+		$('#cityDetailsHeader').html(data['stateName'] + ', ' +data['cityName']);
+		$('#portfolioModal1').modal('show');
+		/* var html = '<option value="">City</option>';
+		var len = data.length;
+		for ( var i = 0; i < len; i++) {
+			html += '<option value="' + data[i] + '">'
+					+ data[i]+ '</option>';
+		}
+		html += '</option>';
+
+		$('#cities').html(html); */
+	});
 });
 </script>
 </body>

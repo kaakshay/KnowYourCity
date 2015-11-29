@@ -1,6 +1,8 @@
 package edu.asu.msse.semanticweb.group6.knowyourcity.controller;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import edu.asu.msse.semanticweb.group6.knowyourcity.model.Zipcode;
 
 
 /**
@@ -65,5 +69,25 @@ public class HelloController {
 		set.add("Phoenix");
 		set.add("Mesa");
 		return set;
+	}
+	
+	@RequestMapping(value = "/getZipcodes", method = RequestMethod.GET)
+	public @ResponseBody
+	Map<String, Object> getZipcodes(
+			@RequestParam(value = "stateName", required = true) String state,
+			@RequestParam(value = "cityName", required = true) String city) {
+//		logger.debug("finding cities for state " + state);
+//		return this.geoService.findCitiesForState(state);
+		System.out.println(state);
+		System.out.println(city);
+//		Set<Zipcode> set = new HashSet<Zipcode>();
+		
+//		set.add("Tempe");x
+//		set.add("Phoenix");
+//		set.add("Mesa");
+		Map<String, Object> responseMap = new HashMap<String, Object>();
+		responseMap.put("stateName", state);
+		responseMap.put("cityName", city);
+		return responseMap;
 	}
 }
