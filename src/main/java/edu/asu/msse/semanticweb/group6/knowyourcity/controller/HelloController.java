@@ -1,11 +1,9 @@
 package edu.asu.msse.semanticweb.group6.knowyourcity.controller;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
@@ -17,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import edu.asu.msse.semanticweb.group6.knowyourcity.model.City;
-import edu.asu.msse.semanticweb.group6.knowyourcity.model.Zipcode;
 import edu.asu.msse.semanticweb.group6.knowyourcity.sparql.SparqlQueryEngine;
 
 
@@ -56,19 +52,7 @@ public class HelloController {
 	Set<String> findAllStates() {
 		Set<String> set = new HashSet<String>();
 		System.out.println("Here");
-		Scanner sc = new Scanner(getClass().getResourceAsStream("/test.txt"));
-		SparqlQueryEngine engine = new SparqlQueryEngine();
-		/*Zipcode test = engine.runZipcodeInfo("85281");
-		City city = engine.runZipcodeInfoForCityUri("http://127.0.0.1:3333/maricopa/phoenix");
-		System.out.println(test.getZipcode());
-		System.out.println(test.getAirPollutionIndex());
-		System.out.println(test.getCrimeRisk());
-		System.out.println(test.getMedianTime());
-		System.out.println(test.getEarthquakeRisk());
-		System.out.println(sc.nextLine());
-		set.add("AZ");
-		set.add("CA");
-		set.add("NY");*/
+		SparqlQueryEngine engine = SparqlQueryEngine.getInstance();
 		set = engine.runGetStatesQuery();
 		return set;
 	}
@@ -76,16 +60,12 @@ public class HelloController {
 
 	@RequestMapping(value = "/cities", method = RequestMethod.GET)
 	public @ResponseBody
-	Set<String> citiesForState(
+	Collection<String> citiesForState(
 			@RequestParam(value = "stateName", required = true) String state) {
-//		logger.debug("finding cities for state " + state);
-//		return this.geoService.findCitiesForState(state);
-//		System.out.println(state);
 		Set<String> set = new HashSet<String>();
-		set.add("Tempe");
-		set.add("Phoenix");
-		set.add("Mesa");
-		return set;
+		SparqlQueryEngine engine = SparqlQueryEngine.getInstance();
+		Map<String, String> cities = engine.runGetCitiesForStateQuery(state);
+		return cities.values();
 	}
 	
 	@RequestMapping(value = "/getZipcodes", method = RequestMethod.GET)
@@ -93,15 +73,8 @@ public class HelloController {
 	Map<String, Object> getZipcodes(
 			@RequestParam(value = "stateName", required = true) String state,
 			@RequestParam(value = "cityName", required = true) String city) {
-//		logger.debug("finding cities for state " + state);
-//		return this.geoService.findCitiesForState(state);
 		System.out.println(state);
 		System.out.println(city);
-//		Set<Zipcode> set = new HashSet<Zipcode>();
-		
-//		set.add("Tempe");x
-//		set.add("Phoenix");
-//		set.add("Mesa");
 		Map<String, Object> responseMap = new HashMap<String, Object>();
 		responseMap.put("stateName", state);
 		responseMap.put("cityName", city);

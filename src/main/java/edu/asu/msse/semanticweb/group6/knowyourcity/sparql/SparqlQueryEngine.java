@@ -25,7 +25,8 @@ import edu.asu.msse.semanticweb.group6.knowyourcity.model.Zipcode;
 public class SparqlQueryEngine {
 
 	static String defaultNameSpace = "http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#";
-
+	private static SparqlQueryEngine instance = null;
+	
 	private static Model model = null;
 	private static Model schema = null;
 
@@ -246,5 +247,11 @@ public class SparqlQueryEngine {
 		System.out.println(test.getCrimeRisk());
 		System.out.println(test.getMedianTime());
 		System.out.println(test.getEarthquakeRisk());
+	}
+	
+	public static SparqlQueryEngine getInstance(){
+		if(instance == null)
+			instance = new SparqlQueryEngine();
+		return instance;
 	}
 }
