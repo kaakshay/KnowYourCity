@@ -329,7 +329,7 @@ $("#go").click(function(){
 		console.log(data);
 		console.log(data['stateName']);
 		console.log(data['cityName']);
-		$('#cityDetailsHeader').html(data['stateName'] + ', ' +data['cityName']);
+		$('#cityDetailsHeader').html(data['cityName'] + ', ' +data['stateName']);
 		$('#portfolioModal1').modal('show');
 		/* var html = '<option value="">City</option>';
 		var len = data.length;
