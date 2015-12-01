@@ -1,8 +1,11 @@
 package edu.asu.msse.semanticweb.group6.knowyourcity.controller;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
@@ -14,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import edu.asu.msse.semanticweb.group6.knowyourcity.model.City;
 import edu.asu.msse.semanticweb.group6.knowyourcity.model.Zipcode;
+import edu.asu.msse.semanticweb.group6.knowyourcity.sparql.SparqlQueryEngine;
 
 
 /**
@@ -50,9 +55,21 @@ public class HelloController {
 	public @ResponseBody
 	Set<String> findAllStates() {
 		Set<String> set = new HashSet<String>();
+		System.out.println("Here");
+		Scanner sc = new Scanner(getClass().getResourceAsStream("/test.txt"));
+		SparqlQueryEngine engine = new SparqlQueryEngine();
+		/*Zipcode test = engine.runZipcodeInfo("85281");
+		City city = engine.runZipcodeInfoForCityUri("http://127.0.0.1:3333/maricopa/phoenix");
+		System.out.println(test.getZipcode());
+		System.out.println(test.getAirPollutionIndex());
+		System.out.println(test.getCrimeRisk());
+		System.out.println(test.getMedianTime());
+		System.out.println(test.getEarthquakeRisk());
+		System.out.println(sc.nextLine());
 		set.add("AZ");
 		set.add("CA");
-		set.add("NY");
+		set.add("NY");*/
+		set = engine.runGetStatesQuery();
 		return set;
 	}
 

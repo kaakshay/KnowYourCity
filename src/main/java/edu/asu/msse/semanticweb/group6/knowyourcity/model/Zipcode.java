@@ -10,7 +10,16 @@ public class Zipcode {
 	private double crimeRisk;
 	private double earthquakeRisk;
 	private double airPollutionIndex;
+	private double medianTime;
 	
+	public double getMedianTime() {
+		return medianTime;
+	}
+
+	public void setMedianTime(double medianTime) {
+		this.medianTime = medianTime;
+	}
+
 	public double getCrimeRisk() {
 		return crimeRisk;
 	}
