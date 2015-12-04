@@ -3,12 +3,15 @@ package edu.asu.msse.semanticweb.group6.knowyourcity.sparql;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
+import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -87,8 +90,8 @@ public class SparqlQueryEngine {
 		return queryStr;
 	}
 
-	public Map<String, String> runGetCitiesForStateQuery(String statename) {
-		Map<String, String> map = new HashMap<String, String>();
+	public List<Map> runGetCitiesForStateQuery(String statename) {
+		List<Map> list = new ArrayList<Map>();
 		StringBuffer queryStr = prepareForQuery();
 		queryStr.append(
 				"select ?name ?sub where{?sub <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#belongs_to_state> <http://127.0.0.1:3333/state/"
@@ -105,13 +108,26 @@ public class SparqlQueryEngine {
 				RDFNode name = soln.get("?name");
 				RDFNode uri = soln.get("?sub");
 				if (name != null) {
-					map.put(uri.toString(), name.toString());
+					Map map = new HashMap();
+					map.put("uri",uri.toString());
+					map.put("name", name.toString());
+					list.add(map);
 				}
 			}
 		} finally {
 			qexec.close();
 		}
-		return map;
+		list.sort(new Comparator<Map>() {
+
+			@Override
+			public int compare(Map o1, Map o2) {
+				String name1 =(String) o1.get("name");
+				String name2 =(String) o2.get("name");
+				return name1.compareTo(name2);
+			}
+			
+		});
+		return list;
 	}
 
 	public City runZipcodeInfoForCityUri(String cityuri) {
@@ -154,7 +170,7 @@ public class SparqlQueryEngine {
 	}
 
 	public Set<String> runGetStatesQuery() {
-		Set<String> set = new HashSet<String>();
+		Set<String> set = new TreeSet<String>();
 		StringBuffer queryStr = prepareForQuery();
 
 		queryStr.append(

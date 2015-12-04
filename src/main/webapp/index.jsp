@@ -250,8 +250,8 @@ $(document).ready(function() {
 				var len = data.length;
 				console.log(data);
 				for ( var i = 0; i < len; i++) {
-					html += '<option value="' + data[i] + '">'
-							+ data[i]+ '</option>';
+					html += '<option value="' + data[i].uri + '">'
+							+ data[i].name+ '</option>';
 				}
 				html += '</option>';
  

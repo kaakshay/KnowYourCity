@@ -3,11 +3,13 @@ package edu.asu.msse.semanticweb.group6.knowyourcity.controller;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jena.atlas.json.JsonObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -60,12 +62,13 @@ public class HelloController {
 
 	@RequestMapping(value = "/cities", method = RequestMethod.GET)
 	public @ResponseBody
-	Collection<String> citiesForState(
+	Collection<Map> citiesForState(
 			@RequestParam(value = "stateName", required = true) String state) {
 		Set<String> set = new HashSet<String>();
+		System.out.println("In get cities");
 		SparqlQueryEngine engine = SparqlQueryEngine.getInstance();
-		Map<String, String> cities = engine.runGetCitiesForStateQuery(state);
-		return cities.values();
+		List<Map> cities = engine.runGetCitiesForStateQuery(state);
+		return cities;
 	}
 	
 	@RequestMapping(value = "/getZipcodes", method = RequestMethod.GET)
@@ -78,6 +81,7 @@ public class HelloController {
 		Map<String, Object> responseMap = new HashMap<String, Object>();
 		responseMap.put("stateName", state);
 		responseMap.put("cityName", city);
+		responseMap.put("city", SparqlQueryEngine.getInstance().runZipcodeInfoForCityUri(city));
 		return responseMap;
 	}
 }
