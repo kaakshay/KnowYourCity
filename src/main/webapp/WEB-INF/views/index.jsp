@@ -11,7 +11,7 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<title>Agency - Start Bootstrap Theme</title>
+<title>Know Your City</title>
 
 <!-- Bootstrap Core CSS -->
 <link href="resources/css/bootstrap.min.css" rel="stylesheet">
@@ -130,19 +130,6 @@
 				<div class="col-md-4">
 					<span class="copyright">Copyright &copy; Know Your City 2015</span>
 				</div>
-				<div class="col-md-4">
-					<ul class="list-inline social-buttons">
-						<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-						<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-						<li><a href="#"><i class="fa fa-linkedin"></i></a></li>
-					</ul>
-				</div>
-				<div class="col-md-4">
-					<ul class="list-inline quicklinks">
-						<li><a href="#">Privacy Policy</a></li>
-						<li><a href="#">Terms of Use</a></li>
-					</ul>
-				</div>
 			</div>
 		</div>
 	</footer>
@@ -163,30 +150,11 @@
 						<div class="modal-body">
 							<!-- Project Details Go Here -->
 							<h2 id="cityDetailsHeader"></h2>
-							<p class="item-intro text-muted">Lorem ipsum dolor sit amet
-								consectetur.</p>
-							<img class="img-responsive img-centered"
-								src="resources/img/portfolio/roundicons-free.png" alt="">
-							<p>Use this area to describe your project. Lorem ipsum dolor
-								sit amet, consectetur adipisicing elit. Est blanditiis dolorem
-								culpa incidunt minus dignissimos deserunt repellat aperiam quasi
-								sunt officia expedita beatae cupiditate, maiores repudiandae,
-								nostrum, reiciendis facere nemo!</p>
-							<p>
-								<strong>Want these icons in this portfolio item sample?</strong>You
-								can download 60 of them for free, courtesy of <a
-									href="https://getdpd.com/cart/hoplink/18076?referrer=bvbo4kax5k8ogc">RoundIcons.com</a>,
-								or you can purchase the 1500 icon set <a
-									href="https://getdpd.com/cart/hoplink/18076?referrer=bvbo4kax5k8ogc">here</a>.
-							</p>
-							<ul class="list-inline">
-								<li>Date: July 2014</li>
-								<li>Client: Round Icons</li>
-								<li>Category: Graphic Design</li>
-							</ul>
+							<div class="accordion" id="zipCodePanel">
+ 							</div>
 							<button type="button" class="btn btn-primary"
 								data-dismiss="modal">
-								<i class="fa fa-times"></i> Close Project
+								<i class="fa fa-times"></i> Close Information
 							</button>
 						</div>
 					</div>
@@ -225,8 +193,10 @@
 					var html = '<option value="">State</option>';
 					var len = data.length;
 					for ( var i = 0; i < len; i++) {
-						html += '<option value="' + data[i] + '">'
-								+ data[i] + '</option>';
+						if(data[i].trim() != ""){
+							html += '<option value="' + data[i] + '">'
+							+ data[i] + '</option>';
+						}
 					}
 					html += '</option>';
 		                        //now that we have our options, give them to our select
@@ -260,6 +230,7 @@ $(document).ready(function() {
 		});
 });
 $("#go").click(function(){
+	if($('#states').val() != "" && $('#cities').val() != ""){
 	$.getJSON('${getZipcodesURL}', {
 		stateName : $('#states').val(),
 		cityName : $('#cities').val(),
@@ -270,16 +241,71 @@ $("#go").click(function(){
 		console.log(data['cityName']);
 		$('#cityDetailsHeader').html(data['cityName'] + ', ' +data['stateName']);
 		$('#portfolioModal1').modal('show');
-		/* var html = '<option value="">City</option>';
-		var len = data.length;
+		
+		var html = '';
+		var city = data['city'];
+		var len = city.zipcodes.length;
 		for ( var i = 0; i < len; i++) {
-			html += '<option value="' + data[i] + '">'
-					+ data[i]+ '</option>';
+			var zipcode = city.zipcodes[i];
+			html += '<div class="panel panel-default">';
+			html += '<div class="panel-heading">'
+			html += '<h4 class="panel-title">'
+			html += '<a data-toggle="collapse" data-parent="#zipCodePanel" href="#collapse'+i+'">'+ zipcode.zipcode+ '</a>';
+			html += '</h4>';
+			html += '</div>';
+			html += '<div id="collapse'+i+'" class="panel-collapse collapse in">'
+			html += '<div class="panel-body"><p style="text-align:left">'
+				if(zipcode.airPollutionIndex != -1){
+					html += 'Air Pollution Index :'+ zipcode.airPollutionIndex +'</br>';
+				}else{
+					html += 'Air Pollution Index: Not available</br>';
+				}
+				if(zipcode.crimeRisk != -1){
+					html += 'Crime risk: '+ zipcode.crimeRisk+'</br>';
+				}else{
+					html += 'Crime risk: Not available</br>';
+				}
+				if(zipcode.earthquakeRisk != -1){
+					html += 'Earthquake risk: '+ zipcode.earthquakeRisk+'</br>';
+				}else{
+					html += 'Earthquake risk: Not available</br>';
+				}
+				if(zipcode.medianTime != -1){
+					html += 'Median transport time to work: '+ zipcode.medianTime+'</br>';
+				}else{
+					html += 'Median transport time to work: Not available</br>';
+				}
+				if(zipcode.oneBedroom.medianRent != -1){
+					html += 'Median rent for one bedroom: $'+ zipcode.oneBedroom.medianRent+'</br>';
+				}else{
+					html += 'Median rent for one bedroom: Not available</br>';
+				}
+				if(zipcode.twoBedroom.medianRent != -1){
+					html += 'Median rent for two bedroom: $'+ zipcode.twoBedroom.medianRent+'</br>';
+				}else{
+					html += 'Median rent for two bedroom: Not available</br>';
+				}
+				if(zipcode.condo.medianRent != -1){
+					html += 'Median rent for condo: $'+ zipcode.condo.medianRent+'</br>';
+				}else{
+					html += 'Median rent for condo: Not available</br>';
+				}
+				html += "Walmarts: ";
+				for ( var j = 0; j < zipcode.walmarts.length; j++) { 
+					html += zipcode.walmarts[j].address;
+				}
+				if(zipcode.walmarts.length == 0){
+					html += "No walmarts found for this zipcode";
+				}
+			html += '</p></div>';
+			html += '</div>';
+			html += '</div>';
 		}
-		html += '</option>';
-
-		$('#cities').html(html); */
+		$('#zipCodePanel').html(html);
+		$('.panel-collapse.in')
+	    .collapse('hide');
 	});
+	}
 });
 </script>
 </body>

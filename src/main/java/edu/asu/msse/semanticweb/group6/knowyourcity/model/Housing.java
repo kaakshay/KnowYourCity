@@ -6,7 +6,7 @@ package edu.asu.msse.semanticweb.group6.knowyourcity.model;
  */
 
 abstract class Housing {
-	private double medianRent;
+	private double medianRent = -1;
 	private Zipcode isAtZipcode;
 
 	public Zipcode getIsAtZipcode() {

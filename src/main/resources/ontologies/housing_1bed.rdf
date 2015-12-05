@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rdf:RDF
-	xmlns=""
+	xmlns:kyc="http://www.semanticweb.org/ser594/group6/knowyourcity"
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
 <rdf:Description rdf:about="http://127.0.0.1:3333/one_bed/11368">

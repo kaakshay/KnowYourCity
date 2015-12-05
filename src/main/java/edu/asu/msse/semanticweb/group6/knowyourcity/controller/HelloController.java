@@ -9,7 +9,6 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.jena.atlas.json.JsonObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,14 +29,10 @@ public class HelloController {
 
 	String message = "Welcome to Spring MVC!";
 
-	@RequestMapping("/hello")
-	public ModelAndView showMessage(
-			@RequestParam(value = "name", required = false, defaultValue = "World") String name) {
-		System.out.println("in controller");
+	@RequestMapping("/")
+	public ModelAndView indexMapping() {
 
-		ModelAndView mv = new ModelAndView("helloworld");
-		mv.addObject("message", message);
-		mv.addObject("name", name);
+		ModelAndView mv = new ModelAndView("index");
 		return mv;
 	}
 
@@ -64,7 +59,7 @@ public class HelloController {
 	public @ResponseBody
 	Collection<Map> citiesForState(
 			@RequestParam(value = "stateName", required = true) String state) {
-		Set<String> set = new HashSet<String>();
+		Set<String> set = new HashSet<String>();	
 		System.out.println("In get cities");
 		SparqlQueryEngine engine = SparqlQueryEngine.getInstance();
 		List<Map> cities = engine.runGetCitiesForStateQuery(state);
@@ -75,13 +70,13 @@ public class HelloController {
 	public @ResponseBody
 	Map<String, Object> getZipcodes(
 			@RequestParam(value = "stateName", required = true) String state,
-			@RequestParam(value = "cityName", required = true) String city) {
+			@RequestParam(value = "cityName", required = true) String cityUri) {
 		System.out.println(state);
-		System.out.println(city);
+		System.out.println(cityUri);
 		Map<String, Object> responseMap = new HashMap<String, Object>();
 		responseMap.put("stateName", state);
-		responseMap.put("cityName", city);
-		responseMap.put("city", SparqlQueryEngine.getInstance().runZipcodeInfoForCityUri(city));
+		responseMap.put("cityName", SparqlQueryEngine.getInstance().runGetCityNameQuery(cityUri));
+		responseMap.put("city", SparqlQueryEngine.getInstance().runZipcodeInfoForCityUri(cityUri));
 		return responseMap;
 	}
 }

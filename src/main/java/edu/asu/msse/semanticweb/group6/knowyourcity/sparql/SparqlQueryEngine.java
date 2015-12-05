@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -23,22 +22,31 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 
 import edu.asu.msse.semanticweb.group6.knowyourcity.model.City;
+import edu.asu.msse.semanticweb.group6.knowyourcity.model.Condo;
+import edu.asu.msse.semanticweb.group6.knowyourcity.model.OneBedroom;
+import edu.asu.msse.semanticweb.group6.knowyourcity.model.TwoBedroom;
+import edu.asu.msse.semanticweb.group6.knowyourcity.model.Walmart;
 import edu.asu.msse.semanticweb.group6.knowyourcity.model.Zipcode;
 
 public class SparqlQueryEngine {
 
 	static String defaultNameSpace = "http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#";
 	private static SparqlQueryEngine instance = null;
-	
+
 	private static Model model = null;
 	private static Model schema = null;
 
 	public SparqlQueryEngine() {
 		super();
 		if (model == null) {
+			model = ModelFactory.createOntologyModel();
 			populateOWLSchema();
 			populateStateCityZip();
 			populateHomeFair();
+			populateOneBed();
+			populateTwoBed();
+			populateHousingCondo();
+			populatWalmarts();
 		}
 	}
 
@@ -55,7 +63,6 @@ public class SparqlQueryEngine {
 	}
 
 	private void populateStateCityZip() {
-		model = ModelFactory.createOntologyModel();
 		InputStream stateCityZip = getClass().getResourceAsStream("/ontologies/state-city-zip.rdf");
 		model.read(stateCityZip, defaultNameSpace);
 		try {
@@ -65,12 +72,52 @@ public class SparqlQueryEngine {
 		}
 	}
 
-	private void populateHomeFair() {
-//		model = ModelFactory.createOntologyModel();
-		InputStream inFoafInstance = getClass().getResourceAsStream("/ontologies/homefair.rdf");
-		model.read(inFoafInstance, defaultNameSpace);
+	private void populateOneBed() {
+		InputStream oneBedStream = getClass().getResourceAsStream("/ontologies/housing_1bed.rdf");
+		model.read(oneBedStream, defaultNameSpace);
 		try {
-			inFoafInstance.close();
+			oneBedStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void populateTwoBed() {
+		InputStream twoBedStream = getClass().getResourceAsStream("/ontologies/housing_2bed.rdf");
+		model.read(twoBedStream, defaultNameSpace);
+		try {
+			twoBedStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void populateHousingCondo() {
+		InputStream housingCondo = getClass().getResourceAsStream("/ontologies/housing_condo.rdf");
+		model.read(housingCondo, defaultNameSpace);
+		try {
+			housingCondo.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void populateHomeFair() {
+		InputStream homefairStream = getClass().getResourceAsStream("/ontologies/homefair.rdf");
+		model.read(homefairStream, defaultNameSpace);
+		try {
+			homefairStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void populatWalmarts() {
+		// model = ModelFactory.createOntologyModel();
+		InputStream walmartStream = getClass().getResourceAsStream("/ontologies/walmart_loc.rdf");
+		model.read(walmartStream, defaultNameSpace);
+		try {
+			walmartStream.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -109,7 +156,7 @@ public class SparqlQueryEngine {
 				RDFNode uri = soln.get("?sub");
 				if (name != null) {
 					Map map = new HashMap();
-					map.put("uri",uri.toString());
+					map.put("uri", uri.toString());
 					map.put("name", name.toString());
 					list.add(map);
 				}
@@ -121,11 +168,11 @@ public class SparqlQueryEngine {
 
 			@Override
 			public int compare(Map o1, Map o2) {
-				String name1 =(String) o1.get("name");
-				String name2 =(String) o2.get("name");
+				String name1 = (String) o1.get("name");
+				String name2 = (String) o2.get("name");
 				return name1.compareTo(name2);
 			}
-			
+
 		});
 		return list;
 	}
@@ -134,7 +181,7 @@ public class SparqlQueryEngine {
 		Set<String> set = new HashSet<String>();
 		StringBuffer queryStr = prepareForQuery();
 		City city = new City();
-		List<Zipcode> zipinfo = new ArrayList<Zipcode>();
+		List<Zipcode> zipcodes = new ArrayList<Zipcode>();
 		// Now add query
 		queryStr.append("select ?zipcodename where {<" + cityuri
 				+ "> <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#has_zipcodes> ?zipcode.?zipcode <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#is_a_zipcode> ?zipcodename.  }");
@@ -149,19 +196,25 @@ public class SparqlQueryEngine {
 				QuerySolution soln = response.nextSolution();
 				RDFNode name = soln.get("?zipcodename");
 				if (name != null) {
-					// System.out.println("Hello to " + name.toString());
 					String[] splitname = name.toString().split("\\^");
-					// System.out.println(splitname[0]);
 					set.add(splitname[0]);
-
 				}
-
 			}
-			for (String zipname : set) {
-
-				zipinfo.add(runZipcodeInfo(zipname));
+			for (String zip : set) {
+				Zipcode zipcode = runZipcodeInfo(zip);
+				zipcode.setOneBedroom(getOneBedroomInfo(zip));
+				zipcode.setTwoBedroom(getTwoBedroomInfo(zip));
+				zipcode.setCondo(getCondoInfo(zip));
+				zipcode.setWalmarts(findStores(zip));
+				zipcodes.add(zipcode);
 			}
-			city.setZipcodes(zipinfo);
+			zipcodes.sort(new Comparator<Zipcode>() {
+				@Override
+				public int compare(Zipcode o1, Zipcode o2) {
+					return o1.getZipcode()-o2.getZipcode();
+				}
+			});
+			city.setZipcodes(zipcodes);
 		} finally {
 			qexec.close();
 		}
@@ -184,10 +237,8 @@ public class SparqlQueryEngine {
 			while (response.hasNext()) {
 				QuerySolution soln = response.nextSolution();
 				RDFNode name = soln.get("?name");
-				if (name != null) {
-					// System.out.println("Hello to " + name.toString());
+				if (name != null && !name.toString().equals("")) {
 					set.add(name.toString());
-
 				}
 			}
 		} finally {
@@ -199,8 +250,7 @@ public class SparqlQueryEngine {
 	public Zipcode runZipcodeInfo(String zip) {
 		Zipcode zipcodeinfo = new Zipcode();
 		StringBuffer queryStr = prepareForQuery();
-		City city = new City();
-
+		zipcodeinfo.setZipcode(Integer.parseInt(zip));
 		// Now add query
 		queryStr.append(
 				" select  ?median_time_to_work ?earthquake_risk ?air_pollution_index ?crime_risk where{<http://127.0.0.1:3333/zip_code/"
@@ -217,14 +267,13 @@ public class SparqlQueryEngine {
 
 		try {
 			ResultSet response = qexec.execSelect();
-			// System.out.println(response);
 
 			while (response.hasNext()) {
 				QuerySolution soln = response.nextSolution();
 				RDFNode mediantimetowork = soln.get("?median_time_to_work");
 				RDFNode crimerisk = soln.get("?crime_risk");
 				RDFNode earthquakerisk = soln.get("?earthquake_risk");
-				RDFNode airpollutionindex = soln.get("?airpollution_index");
+				RDFNode airpollutionindex = soln.get("?air_pollution_index");
 
 				if (mediantimetowork != null) {
 					String[] test = mediantimetowork.toString().split("\\^");
@@ -246,12 +295,174 @@ public class SparqlQueryEngine {
 					zipcodeinfo.setAirPollutionIndex((Double.parseDouble(test[0])));
 				} else
 					zipcodeinfo.setAirPollutionIndex(-1);
-				zipcodeinfo.setZipcode(Integer.parseInt(zip));
 			}
 		} finally {
 			qexec.close();
 		}
 		return zipcodeinfo;
+	}
+
+	public OneBedroom getOneBedroomInfo(String zip) {
+		OneBedroom onebedroom = new OneBedroom();
+		StringBuffer queryStr3 = prepareForQuery();
+
+		String queryonebed = "select ?rent where{?onebed rdf:type <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#OneBedroom>. ?onebed <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#is_associated_with_zipcode>"
+				+ " <http://127.0.0.1:3333/zip_code/" + zip
+				+ ">. ?onebed <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#has_median_rent> ?rent. }";
+
+		queryStr3.append(queryonebed);
+
+		Query query3 = QueryFactory.create(queryStr3.toString());
+		QueryExecution qexec3 = QueryExecutionFactory.create(query3, model);
+
+		try {
+			ResultSet response3 = qexec3.execSelect();
+
+			while (response3.hasNext()) {
+				QuerySolution soln3 = response3.nextSolution();
+				RDFNode rent_onebed = soln3.get("?rent");
+				if (rent_onebed != null) {
+					Double medianrent_onebed = Double.parseDouble(rent_onebed.toString());
+					onebedroom.setMedianRent(medianrent_onebed);
+				} else
+					return null;
+			}
+		} catch (Exception ex) {
+
+		} finally {
+			qexec3.close();
+		}
+		return onebedroom;
+	}
+
+	public TwoBedroom getTwoBedroomInfo(String zip) {
+		TwoBedroom twobedroom = new TwoBedroom();
+		StringBuffer queryStr4 = prepareForQuery();
+		String querytwobed = "select ?rent where{?twobed rdf:type <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#TwoBedroom>. ?twobed <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#is_associated_with_zipcode>"
+				+ " <http://127.0.0.1:3333/zip_code/" + zip
+				+ ">. ?twobed <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#has_median_rent> ?rent. }";
+
+		queryStr4.append(querytwobed);
+
+		Query query4 = QueryFactory.create(queryStr4.toString());
+		QueryExecution qexec4 = QueryExecutionFactory.create(query4, model);
+
+		try {
+			ResultSet response4 = qexec4.execSelect();
+
+			while (response4.hasNext()) {
+				QuerySolution soln4 = response4.nextSolution();
+				RDFNode rent_twobed = soln4.get("?rent");
+
+				if (rent_twobed != null) {
+
+					Double medianrent_twobed = Double.parseDouble(rent_twobed.toString());
+					twobedroom.setMedianRent(medianrent_twobed);
+				}
+
+				else
+					return null;
+
+			}
+		} catch (Exception ex) {
+
+		} finally {
+			qexec4.close();
+		}
+		return twobedroom;
+	}
+
+	public Condo getCondoInfo(String zip) {
+		Condo condostyle = new Condo();
+		StringBuffer queryStr5 = prepareForQuery();
+
+		String querycondo = "select ?rent where{?condo rdf:type <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#Condo>. ?condo <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#is_associated_with_zipcode>"
+				+ " <http://127.0.0.1:3333/zip_code/" + zip
+				+ ">. ?condo <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#has_median_rent> ?rent. }";
+
+		queryStr5.append(querycondo);
+
+		Query query5 = QueryFactory.create(queryStr5.toString());
+		QueryExecution qexec5 = QueryExecutionFactory.create(query5, model);
+
+		try {
+			ResultSet response5 = qexec5.execSelect();
+
+			while (response5.hasNext()) {
+				QuerySolution soln5 = response5.nextSolution();
+				RDFNode rent_condo = soln5.get("?rent");
+
+				if (rent_condo != null) {
+
+					Double medianrent_condo = Double.parseDouble(rent_condo.toString());
+					condostyle.setMedianRent(medianrent_condo);
+				} else
+					return null;
+			}
+		} catch (Exception ex) {
+
+		} finally {
+			qexec5.close();
+		}
+		return condostyle;
+	}
+
+	public List<Walmart> findStores(String zip) {
+		List<Walmart> walmarts = new ArrayList<Walmart>();
+		StringBuffer queryStr2 = prepareForQuery();
+
+		String querystores = "select ?addr where{?store rdf:type <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#Walmart>. ?store <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#is_at_zipcode>"
+				+ " <http://127.0.0.1:3333/zip_code/" + zip
+				+ ">. ?store <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#has_address> ?addr. }";
+		queryStr2.append(querystores);
+
+		Query query2 = QueryFactory.create(queryStr2.toString());
+		QueryExecution qexec2 = QueryExecutionFactory.create(query2, model);
+
+		try {
+			ResultSet response2 = qexec2.execSelect();
+
+			while (response2.hasNext()) {
+				QuerySolution soln2 = response2.nextSolution();
+				RDFNode storeAddr = soln2.get("?addr");
+				if (storeAddr != null) {
+					Walmart walmart = new Walmart();
+					String walmart_loc = storeAddr.toString();
+					walmart.setAddress(walmart_loc);
+					walmarts.add(walmart);
+				}
+			}
+		} catch (Exception ex) {
+
+		} finally {
+			qexec2.close();
+		}
+
+		return walmarts;
+	}
+
+	public String runGetCityNameQuery(String cityuri) {
+		String cityname = "";
+		StringBuffer queryStr = prepareForQuery();
+		queryStr.append("select ?name where{<" + cityuri
+				+ "> <http://www.semanticweb.org/japas_000/ontologies/2015/10/know-your-city#has_name> ?name}");
+		Query query = QueryFactory.create(queryStr.toString());
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+
+		try {
+			ResultSet response = qexec.execSelect();
+			while (response.hasNext()) {
+				QuerySolution soln = response.nextSolution();
+				RDFNode name = soln.get("?name");
+				if (name != null)
+					cityname = name.toString();
+				else
+					cityname = "not found";
+			}
+		} finally {
+			qexec.close();
+		}
+		return cityname;
 	}
 
 	public static void main(String[] args) {
@@ -264,9 +475,9 @@ public class SparqlQueryEngine {
 		System.out.println(test.getMedianTime());
 		System.out.println(test.getEarthquakeRisk());
 	}
-	
-	public static SparqlQueryEngine getInstance(){
-		if(instance == null)
+
+	public static SparqlQueryEngine getInstance() {
+		if (instance == null)
 			instance = new SparqlQueryEngine();
 		return instance;
 	}
